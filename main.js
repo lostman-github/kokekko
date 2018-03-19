@@ -3,6 +3,8 @@ const electron = require('electron')
 const app = electron.app
 // Module to create native browser window.
 const BrowserWindow = electron.BrowserWindow
+// 
+const shell = electron.shell
 
 const path = require('path')
 const url = require('url')
@@ -35,12 +37,20 @@ function createWindow () {
     mainWindow = null
   })
 
+  // Workaround for redirect error
   // https://github.com/electron/electron/issues/3471
   mainWindow.webContents.on('did-get-redirect-request', function (e, oldURL, newURL, isMainFrame, httpResponseCode, requestMethod, refeerrer, header) {
     if (isMainFrame) {
       setTimeout(function () { mainWindow.webContents.send('redirect-url', newURL) }, 10)
       e.preventDefault()
     }
+  })
+
+  // Use external web browser when open new window
+  // https://qiita.com/k0kubun/items/baa0b2ee3d25f1e2f86d
+  mainWindow.webContents.on('new-window', function (e, url) {
+    e.preventDefault();
+    shell.openExternal(url);
   })
 
 }
