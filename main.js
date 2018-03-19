@@ -13,7 +13,13 @@ let mainWindow
 
 function createWindow () {
   // Create the browser window.
-  mainWindow = new BrowserWindow({width: 800, height: 600})
+  mainWindow = new BrowserWindow({
+    width: 800,
+    height: 600,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js')
+    }
+  })
 
   // and load the index.html of the app.
   mainWindow.loadURL('https://twitter.com')
@@ -28,6 +34,15 @@ function createWindow () {
     // when you should delete the corresponding element.
     mainWindow = null
   })
+
+  // https://github.com/electron/electron/issues/3471
+  mainWindow.webContents.on('did-get-redirect-request', function (e, oldURL, newURL, isMainFrame, httpResponseCode, requestMethod, refeerrer, header) {
+    if (isMainFrame) {
+      setTimeout(function () { mainWindow.webContents.send('redirect-url', newURL) }, 10)
+      e.preventDefault()
+    }
+  })
+
 }
 
 // This method will be called when Electron has finished
